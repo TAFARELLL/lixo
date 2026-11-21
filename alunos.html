@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking das Salas | Por um Lins mais limpo</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <!-- Barra de Navegação Profissional (TCC) -->
+    <nav class="navbar">
+        <div class="nav-brand">🧹 Por um Lins mais limpo</div>
+        <ul class="nav-links">
+            <li><a href="#" onclick="mostrarSecao('ranking', event)" class="ativo">Ranking</a></li>
+            <li><a href="#" onclick="mostrarSecao('quem-somos', event)">Quem Somos Nós</a></li>
+            <li><a href="#" onclick="mostrarSecao('objetivos', event)">Nosso Objetivo</a></li>
+            <li><a href="#" onclick="mostrarSecao('valores', event)">Valores</a></li>
+            <li><a href="#" onclick="mostrarSecao('regras', event)">Regras</a></li>
+            <li><a href="/professor" class="nav-btn-prof">Área do Professor</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        
+        <!-- SEÇÃO 1: RANKING -->
+        <section id="secao-ranking" class="conteudo-secao">
+            <header>
+                <h1>Por um Lins mais limpo</h1>
+                <p>A turma líder no final do bimestre garante o Dia de Cinema!</p>
+            </header>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Posição</th>
+                        <th>Turma</th>
+                        <th>Pontuação Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-corpo">
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--text-muted);">
+                            Carregando classificação do servidor (aguarde alguns segundos)...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- SEÇÃO 2: QUEM SOMOS NÓS -->
+        <section id="secao-quem-somos" class="conteudo-secao" style="display: none;">
+            <header>
+                <h1>Quem Somos Nós</h1>
+                <p>Conheça a equipe e a essência do nosso projeto acadêmico.</p>
+            </header>
+            <div class="texto-institucional">
+                <p>O projeto <strong>"Por um Lins mais limpo"</strong> nasceu do esforço conjunto de estudantes e educadores engajados em transformar o ambiente escolar em um espaço mais agradável, consciente e saudável.</p>
+                <p>Acreditamos que a conservação e a limpeza do espaço físico refletem diretamente na qualidade do aprendizado, na cidadania e no bem-estar coletivo de toda a comunidade acadêmica.</p>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 3: NOSSO OBJETIVO -->
+        <section id="secao-objetivos" class="conteudo-secao" style="display: none;">
+            <header>
+                <h1>Nosso Objetivo</h1>
+                <p>Nossa meta central com esta iniciativa.</p>
+            </header>
+            <div class="texto-institucional">
+                <p>Incentivar de forma lúdica, transparente e competitiva a responsabilidade socioambiental entre os alunos das diferentes turmas.</p>
+                <p>Por meio de avaliações contínuas realizadas pelos professores, buscamos premiar o esforço coletivo na manutenção da limpeza das salas de aula, promovendo hábitos sustentáveis que transcendem os muros da instituição.</p>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 4: VALORES -->
+        <section id="secao-valores" class="conteudo-secao" style="display: none;">
+            <header>
+                <h1>Nossos Valores</h1>
+                <p>Os pilares que sustentam o nosso projeto.</p>
+            </header>
+            <div class="texto-institucional">
+                <ul class="lista-valores">
+                    <li>✨ <strong>Sustentabilidade:</strong> Conscientização sobre o descarte correto e conservação do espaço.</li>
+                    <li>🤝 <strong>Trabalho em Equipe:</strong> União de toda a turma em busca de um objetivo comum.</li>
+                    <li>⚖️ <strong>Transparência:</strong> Sistema de pontuação ao vivo e auditável por professores e alunos.</li>
+                    <li>🎯 <strong>Responsabilidade:</strong> Estímulo à autonomia e ao respeito pelo ambiente compartilhado.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- SEÇÃO 5: REGRAS / COMO FUNCIONA -->
+        <section id="secao-regras" class="conteudo-secao" style="display: none;">
+            <header>
+                <h1>Regras e Funcionamento</h1>
+                <p>Entenda como o ranking e a pontuação funcionam.</p>
+            </header>
+            <div class="texto-institucional">
+                <p>📝 <strong>Avaliação Contínua:</strong> Ao final de cada aula, os professores podem avaliar a sala com notas que variam de -10 a +10 pontos, com base na organização, limpeza e descarte correto de resíduos.</p>
+                <p>🏆 <strong>Acumulações e Descontos:</strong> As notas são somadas ou subtraídas em tempo real no banco de dados. A turma com a maior pontuação acumulada ao término do bimestre vence a competição.</p>
+                <p>🎬 <strong>Premiação:</strong> A turma campeã garante como incentivo o cobiçado <em>Dia de Cinema</em>!</p>
+            </div>
+        </section>
+
+        <!-- Rodapé Acadêmico Institucional -->
+        <footer class="footer-institucional">
+            <p><strong>Por um Lins mais limpo</strong> &copy; 2026 — Projeto de TCC</p>
+            <p class="equipe-creditos">Equipe: Barbara, Enzo, Geovana, Henrique, Jamal, Maurício e Raphael</p>
+        </footer>
+
+    </div>
+
+    <script>
+        function mostrarSecao(idSecao, event) {
+            if (event) event.preventDefault();
+            
+            document.querySelectorAll('.conteudo-secao').forEach(sec => {
+                sec.style.display = 'none';
+            });
+
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.classList.remove('ativo');
+            });
+
+            document.getElementById('secao-' + idSecao).style.display = 'block';
+
+            if (event && event.target) {
+                event.target.classList.add('ativo');
+            }
+        }
+
+        async function carregarRanking() {
+            const tbody = document.getElementById('tabela-corpo');
+
+            try {
+                const resposta = await fetch('/api/notas');
+                const salas = await resposta.json();
+
+                if (!salas || salas.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Nenhuma avaliação registrada ainda.</td></tr>';
+                    return;
+                }
+
+                salas.sort((a, b) => b.pontos - a.pontos);
+
+                tbody.innerHTML = salas.map((item, index) => {
+                    const posicao = index + 1;
+                    const classeMedalha = posicao <= 3 ? `rank-${posicao}` : '';
+
+                    return `
+                        <tr>
+                            <td><span class="badge-rank ${classeMedalha}">${posicao}º</span></td>
+                            <td>${item.sala}</td>
+                            <td><span class="pontos-pill">${item.pontos} pts</span></td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (erro) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--danger);">
+                            O servidor está acordando... Atualize a página em instantes.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        carregarRanking();
+        setInterval(carregarRanking, 30000);
+    </script>
+
+</body>
+</html>

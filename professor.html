@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Professor | Por um Lins mais limpo</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Barra de Navegação -->
+  <nav class="navbar">
+    <div class="nav-brand">🧹 Por um Lins mais limpo</div>
+    <ul class="nav-links">
+      <li><a href="/">Ver Ranking / Site</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1>🧹 Painel do Professor</h1>
+    <p class="subtitle" style="text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">Avaliação pós-aula para o ranking bimestral</p>
+
+    <form id="form-professor">
+      <div class="form-group">
+        <label for="professor">Nome do Professor(a)</label>
+        <select id="professor" required>
+          <option value="">Selecione seu nome...</option>
+          <option value="Dimas">Dimas</option>
+          <option value="Prof. Mariana">Prof. Mariana</option>
+          <option value="Prof. Geovanna">Prof. Geovanna</option>
+          <option value="Adriano">Adriano</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="senha">Senha de Acesso</label>
+        <input type="password" id="senha" placeholder="Digite sua senha" required>
+      </div>
+
+      <div class="form-group">
+        <label for="sala">Turma / Sala</label>
+        <select id="sala" required>
+          <option value="">Selecione a sala...</option>
+          <optgroup label="2º Anos">
+            <option value="2ºA">2ºA</option>
+            <option value="2ºB">2ºB</option>
+            <option value="2ºC">2ºC</option>
+          </optgroup>
+          <optgroup label="3º Anos">
+            <option value="3ºA (ADM)">3ºA (ADM)</option>
+            <option value="3ºB (DS)">3ºB (DS)</option>
+            <option value="3ºC">3ºC</option>
+            <option value="3ºD">3ºD</option>
+            <option value="3ºE">3ºE</option>
+            <option value="3ºF">3ºF</option>
+            <option value="3ºG">3ºG</option>
+            <option value="3ºH">3ºH</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="pontos">Nota de Limpeza (-10 a +10)</label>
+        <input type="number" id="pontos" min="-10" max="10" placeholder="Ex: 5" required>
+      </div>
+
+      <button type="submit" class="btn">Registrar Pontuação</button>
+    </form>
+
+    <p id="mensagem" style="margin-top: 15px; text-align: center; font-weight: bold;"></p>
+
+    <!-- Rodapé Institucional -->
+    <footer class="footer-institucional" style="margin-top: 2rem;">
+        <p><strong>Por um Lins mais limpo</strong> &copy; 2026 — Projeto de TCC</p>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById('form-professor').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const professorSelecionado = document.getElementById('professor').value;
+      const senha = document.getElementById('senha').value;
+      const sala = document.getElementById('sala').value;
+      const pontosAlterados = parseInt(document.getElementById('pontos').value);
+      const msg = document.getElementById('mensagem');
+
+      try {
+        const resGet = await fetch('/api/notas');
+        const listaAtual = await resGet.json();
+
+        let itemSala = listaAtual.find(i => i.sala === sala);
+        let pontosAtuais = itemSala ? itemSala.pontos : 0;
+        let novoTotal = pontosAtuais + pontosAlterados;
+
+        let listaFinal = [...listaAtual];
+        if (itemSala) {
+          itemSala.pontos = novoTotal;
+        } else {
+          listaFinal.push({ sala: sala, pontos: novoTotal });
+        }
+
+        const resposta = await fetch('/api/notas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ senha, lista: listaFinal, pontosAlterados })
+        });
+
+        const texto = await resposta.text();
+        if (resposta.ok) {
+          msg.style.color = '#4ade80';
+          msg.textContent = texto;
+          document.getElementById('form-professor').reset();
+        } else {
+          msg.style.color = '#f87171';
+          msg.textContent = texto;
+        }
+      } catch (err) {
+        msg.style.color = '#f87171';
+        msg.textContent = 'Erro ao conectar com o servidor.';
+      }
+    });
+  </script>
+</body>
+</html>

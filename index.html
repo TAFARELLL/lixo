@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Controle de Limpeza - Rego</title>
+    <style>
+        @import url('https://googleapis.com'); 
+        body { font-family: 'Amatic SC',Arial, sans-serif; max-width: 600px; margin: 40px auto; background: #f4f4f9; padding: 20px; border-radius: 8px; }
+        h1, h2 { color: #333; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, button { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #28a745; color: white; font-size: 16px; border: none; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #218838; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+        th { background: #007bff; color: white; }
+    </style>
+</head>
+<body>
+
+    <h1>🧹 Limpe o Rego</h1>
+    
+    <div class="form-group">
+        <label>Nome do Professor:</label>
+        <input type="text" id="professor" placeholder="Ex: Dimas" required>
+    </div>
+
+    <div class="form-group">
+        <label>Sala:</label>
+        <select id="sala">
+            <option value="1ºD">1ºD</option>
+            <option value="2ºB">2ºB</option>
+            <option value="3ºA">3ºA</option>
+            <option value="3ºB">3ºB</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Nota de Limpeza (0 a 10):</label>
+        <input type="number" id="pontuacao" min="0" max="10" value="10" required>
+    </div>
+
+    <button onclick="adicionarNota()">Registrar Avaliação</button>
+
+    <h2>🏆 Ranking do Bimestre</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Sala</th>
+                <th>Total de Pontos</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-ranking"></tbody>
+    </table>
+
+    <script>
+        // Dados iniciais iguais aos do seu SQL
+        let avaliacoes = [
+            { professor: 'Dimas', sala: '3ºB', pontuacao: 2 },
+            { professor: 'Geovana', sala: '2ºB', pontuacao: 6 },
+            { professor: 'Rubens', sala: '3ºA', pontuacao: 10 },
+            { professor: 'Wagner', sala: '1ºD', pontuacao: 10 }
+        ];
+
+        function atualizarRanking() {
+            const somaPorSala = {};
+            avaliacoes.forEach(item => {
+                somaPorSala[item.sala] = (somaPorSala[item.sala] || 0) + item.pontuacao;
+            });
+
+            const rankingOrdenado = Object.entries(somaPorSala).sort((a, b) => b[1] - a[1]);
+            const tbody = document.getElementById('tabela-ranking');
+            tbody.innerHTML = '';
+
+            rankingOrdenado.forEach(([sala, pontos]) => {
+                tbody.innerHTML += `<tr><td>${sala}</td><td><strong>${pontos} pts</strong></td></tr>`;
+            });
+        }
+
+        function adicionarNota() {
+            const prof = document.getElementById('professor').value;
+            const sala = document.getElementById('sala').value;
+            const nota = parseInt(document.getElementById('pontuacao').value);
+
+            if (!prof || isNaN(nota) || nota < 0 || nota > 10) {
+                alert('Preencha o nome do professor e uma nota entre 0 e 10.');
+                return;
+            }
+
+            avaliacoes.push({ professor: prof, sala: sala, pontuacao: nota });
+            document.getElementById('professor').value = '';
+            atualizarRanking();
+        }
+
+        atualizarRanking();
+    </script>
+
+</body>
+</html>

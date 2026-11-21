@@ -1,0 +1,15 @@
+{
+  "name": "limpe-o-rego",
+  "version": "1.0.0",
+  "description": "Sistema de ranking de limpeza escolar",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.2"
+  }
+}
