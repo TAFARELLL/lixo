@@ -5,6 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel do Professor | Por um Lins mais limpo</title>
   <link rel="stylesheet" href="/style.css">
+  <style>
+    .senha-container {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .senha-container input {
+      width: 100%;
+      padding-right: 45px;
+    }
+    .btn-olho {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+    .tabela-historico {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+    .tabela-historico th, .tabela-historico td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    .tabela-historico th {
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    .btn-deletar-item {
+      background-color: #dc2626;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+  </style>
 </head>
 <body>
 
@@ -34,7 +77,10 @@
 
       <div class="form-group">
         <label for="senha">Senha de Acesso</label>
-        <input type="password" id="senha" placeholder="Digite sua senha" required>
+        <div class="senha-container">
+          <input type="password" id="senha" placeholder="Digite sua senha" required>
+          <button type="button" id="btn-toggle-senha" class="btn-olho" title="Mostrar/Ocultar Senha">👁️</button>
+        </div>
       </div>
 
       <div class="form-group">
@@ -64,10 +110,38 @@
         <input type="number" id="pontos" min="-10" max="10" placeholder="Ex: 5" required>
       </div>
 
+      <div class="form-group">
+        <label for="motivo">Motivo / Observação</label>
+        <input type="text" id="motivo" placeholder="Ex: Sala limpa após intervalo" required>
+      </div>
+
       <button type="submit" class="btn">Registrar Pontuação</button>
     </form>
 
     <p id="mensagem" style="margin-top: 15px; text-align: center; font-weight: bold;"></p>
+
+    <!-- Seção de Histórico de Alterações -->
+    <div style="margin-top: 2.5rem;">
+      <h2>📜 Histórico de Alterações (Auditoria)</h2>
+      <p style="font-size: 0.9rem; color: var(--text-muted);">Clique no botão de excluir ao lado do registro selecionado para removê-lo (Apenas Adriano):</p>
+      <div style="overflow-x: auto;">
+        <table class="tabela-historico">
+          <thead>
+            <tr>
+              <th>Data/Hora</th>
+              <th>Professor</th>
+              <th>Sala</th>
+              <th>Pontos</th>
+              <th>Motivo</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody id="corpo-historico">
+            <tr><td colspan="6" style="text-align: center;">Carregando histórico...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <!-- Rodapé Institucional -->
     <footer class="footer-institucional" style="margin-top: 2rem;">
@@ -76,12 +150,88 @@
   </div>
 
   <script>
+    // Botão de visualizar/ocultar senha (olhinho)
+    const inputSenha = document.getElementById('senha');
+    const btnToggleSenha = document.getElementById('btn-toggle-senha');
+    btnToggleSenha.addEventListener('click', () => {
+      if (inputSenha.type === 'password') {
+        inputSenha.type = 'text';
+        btnToggleSenha.textContent = '🔒';
+      } else {
+        inputSenha.type = 'password';
+        btnToggleSenha.textContent = '👁️';
+      }
+    });
+
+    // Função para carregar o histórico na tabela
+    async function carregarHistorico() {
+      try {
+        const res = await fetch('/api/historico');
+        const historico = await res.json();
+        const tbody = document.getElementById('corpo-historico');
+        
+        if (historico.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma alteração registrada ainda.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        historico.forEach(h => {
+          const tr = document.createElement('tr');
+          const sinal = h.pontos_alterados > 0 ? `+${h.pontos_alterados}` : h.pontos_alterados;
+          tr.innerHTML = `
+            <td>${h.data_hora}</td>
+            <td>${h.professor}</td>
+            <td>${h.sala}</td>
+            <td style="font-weight: bold; color: ${h.pontos_alterados > 0 ? '#16a34a' : '#dc2626'};">${sinal}</td>
+            <td>${h.motivo || '-'}</td>
+            <td><button class="btn-deletar-item" onclick="apagarItemHistorico(${h.id})">🗑️ Apagar</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Erro ao carregar histórico:', err);
+      }
+    }
+
+    // Função para apagar um item específico do histórico
+    async function apagarItemHistorico(id) {
+      const senhaAdriano = prompt('Ação restrita! Digite a senha do Adriano para apagar este registro:');
+      if (!senhaAdriano) return;
+
+      const msg = document.getElementById('mensagem');
+      try {
+        const res = await fetch(`/api/historico/${id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ senha: senhaAdriano })
+        });
+
+        const texto = await res.text();
+        if (res.ok) {
+          msg.style.color = '#4ade80';
+          msg.textContent = texto;
+          carregarHistorico();
+        } else {
+          msg.style.color = '#f87171';
+          msg.textContent = texto;
+          alert(texto);
+        }
+      } catch (err) {
+        alert('Erro ao conectar com o servidor.');
+      }
+    }
+
+    // Carrega o histórico ao abrir a página
+    carregarHistorico();
+
+    // Envio do formulário
     document.getElementById('form-professor').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const professorSelecionado = document.getElementById('professor').value;
       const senha = document.getElementById('senha').value;
       const sala = document.getElementById('sala').value;
       const pontosAlterados = parseInt(document.getElementById('pontos').value);
+      const motivo = document.getElementById('motivo').value;
       const msg = document.getElementById('mensagem');
 
       try {
@@ -102,7 +252,7 @@
         const resposta = await fetch('/api/notas', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ senha, lista: listaFinal, pontosAlterados })
+          body: JSON.stringify({ senha, lista: listaFinal, pontosAlterados, salaModificada: sala, motivo })
         });
 
         const texto = await resposta.text();
@@ -110,6 +260,7 @@
           msg.style.color = '#4ade80';
           msg.textContent = texto;
           document.getElementById('form-professor').reset();
+          carregarHistorico();
         } else {
           msg.style.color = '#f87171';
           msg.textContent = texto;

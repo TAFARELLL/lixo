@@ -60,23 +60,50 @@ const server = http.createServer(async (req, res) => {
       res.end(data);
     });
 
-  // Verifica a senha
-  } else if (req.url === '/api/verificar-senha' && req.method === 'POST') {
+  // Retorna o histórico de alterações do Supabase
+  } else if (req.url === '/api/historico' && req.method === 'GET') {
+    try {
+      const { data, error } = await supabase
+        .from('historico')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(15);
+      if (error) throw error;
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify(data || []));
+    } catch (e) {
+      console.error("Erro ao buscar histórico:", e);
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify([]));
+    }
+
+  // Apaga um item específico do histórico (RESTRITO APENAS AO ADRIANO)
+  } else if (req.url.startsWith('/api/historico/') && req.method === 'DELETE') {
+    const idItem = req.url.split('/')[3];
     let corpo = '';
     req.on('data', p => { corpo += p; });
-    req.on('end', () => {
+    req.on('end', async () => {
       try {
         const { senha } = JSON.parse(corpo);
-        const entradaProf = Object.entries(PROFESSORES).find(([nome, s]) => s === senha);
-        if (!entradaProf) {
-          res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-          return res.end(JSON.stringify({ valido: false }));
+
+        if (senha !== PROFESSORES['Adriano']) {
+          res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+          return res.end('Acesso negado! Apenas o Adriano pode apagar itens do histórico.');
         }
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ valido: true, nome: entradaProf[0] }));
+
+        const { error } = await supabase
+          .from('historico')
+          .delete()
+          .eq('id', idItem);
+
+        if (error) throw error;
+
+        res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Item do histórico apagado com sucesso pelo Adriano!');
       } catch (e) {
-        res.writeHead(400);
-        res.end(JSON.stringify({ valido: false }));
+        console.error("Erro ao apagar item do histórico:", e);
+        res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('Erro ao apagar o item no banco.');
       }
     });
 
@@ -93,7 +120,7 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify([]));
     }
 
-  // Salva as notas direto no Supabase
+  // Salva as notas e registra o histórico no Supabase
   } else if (req.url === '/api/notas' && req.method === 'POST') {
     let corpo = '';
     req.on('data', p => { corpo += p; });
@@ -125,13 +152,22 @@ const server = http.createServer(async (req, res) => {
         const nomeProfessor = entradaProf[0];
         const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
-       // Apaga e insere de forma limpa usando a restrição da sala
         for (const item of pedido.lista) {
           const { error: errUpsert } = await supabase
             .from('notas')
             .upsert({ sala: item.sala, pontos: item.pontos }, { onConflict: 'sala' });
 
           if (errUpsert) throw errUpsert;
+        }
+
+        if (pedido.pontosAlterados !== undefined && pedido.salaModificada) {
+          await supabase.from('historico').insert({
+            professor: nomeProfessor,
+            sala: pedido.salaModificada,
+            pontos_alterados: pedido.pontosAlterados,
+            motivo: pedido.motivo || 'Lançamento de pontos',
+            data_hora: dataHora
+          });
         }
 
         res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
